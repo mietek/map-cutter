@@ -18,32 +18,33 @@ newTileMap out = do
     r <- newIORef M.empty
     return (TM out r)
 
-openTile :: TileMap -> Int -> Int -> IO Handle
-openTile tm tx ty = do
+openTile :: TileMap -> Int -> Int -> (Handle -> Bool -> IO ()) -> IO ()
+openTile tm tx ty fun = do
     xm <- readIORef r
     case M.lookup tx xm of
       Just ym -> case M.lookup ty ym of
-        Just h -> return h
+        Just h -> fun h False
         Nothing -> do
           h <- openFile f WriteMode
           let ym' = M.insert ty h ym
               xm' = M.insert tx ym' xm
           writeIORef r xm'
-          return h
+          fun h True
       Nothing -> do
         h <- openFile f WriteMode
         let xm' = M.insert tx (M.singleton ty h) xm
         writeIORef r xm'
-        return h
+        fun h True
   where
     r = tmRef tm
-    f = tmOutput tm ++ "-" ++ show tx ++ "-" ++ show ty ++ ".txt"
+    f = tmOutput tm ++ "-" ++ show tx ++ "-" ++ show ty ++ ".json"
 
-closeAllTiles :: TileMap -> IO ()
-closeAllTiles tm = do
+closeAllTiles :: TileMap -> (Handle -> IO ()) -> IO ()
+closeAllTiles tm fun = do
     xm <- readIORef r
     forM_ (M.elems xm) $ \ym ->
       forM_ (M.elems ym) $ \h -> do
+        fun h
         hClose h
     writeIORef r M.empty
   where

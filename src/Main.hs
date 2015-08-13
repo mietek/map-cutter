@@ -1,13 +1,17 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Control.Applicative ((<$>))
 import Control.Monad (forM_)
+import Data.Aeson ((.=), ToJSON, toJSON)
+import qualified Data.Aeson as J
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.ByteString.Lex.Fractional (readDecimal)
 import Data.Maybe (catMaybes)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
-import System.IO (Handle, IOMode(..), hPutStrLn, withFile)
+import System.IO (Handle, IOMode(..), hPutStr, hPutStrLn, withFile)
 
 import Options
 import TileMap
@@ -30,28 +34,40 @@ processPolyline h s =
       [] -> return ()
       ps -> hPutStrLn h (showPolyline ps)
 
+
+data Point = P Double Double
+  deriving (Eq, Ord, Show)
+
+instance ToJSON Point where
+  toJSON (P x y) = J.object ["x" .= x, "y" .= y]
+
+
 processPoints :: FilePath -> Int -> Int -> [L.ByteString] -> IO ()
 processPoints out width height points = do
     tm <- newTileMap (out </> "points")
     forM_ points $ \s ->
       case readPoint s of
-        Just p@(x, y) -> do
-          h <- openTile tm (floor x `div` width) (floor y `div` height)
-          hPutStrLn h (showPoint p)
+        Just p@(P x y) -> do
+          let tx = floor x `div` width
+              ty = floor y `div` height
+          openTile tm tx ty $ \h new -> do
+            hPutStr h (if new then "[" else ",")
+            L.hPutStrLn h (J.encode p)
         Nothing -> return ()
-    closeAllTiles tm
+    closeAllTiles tm $ \h ->
+      hPutStrLn h "]"
 
 
-readPolyline :: L.ByteString -> [(Double, Double)]
+readPolyline :: L.ByteString -> [Point]
 readPolyline = catMaybes . map readPoint . L.split ' '
 
-readPoint :: L.ByteString -> Maybe (Double, Double)
+readPoint :: L.ByteString -> Maybe Point
 readPoint s =
     case L.split ',' s of
       [sx, sy] -> do
         x <- readDouble sx
         y <- readDouble sy
-        return (x, y)
+        return (P x y)
       _ -> Nothing
 
 readDouble :: L.ByteString -> Maybe Double
@@ -61,8 +77,8 @@ readDouble s =
       Nothing -> Nothing
 
 
-showPolyline :: [(Double, Double)] -> String
+showPolyline :: [Point] -> String
 showPolyline = unwords . map showPoint
 
-showPoint :: (Double, Double) -> String
-showPoint (x, y) = show x ++ "," ++ show y
+showPoint :: Point -> String
+showPoint (P x y) = show x ++ "," ++ show y
