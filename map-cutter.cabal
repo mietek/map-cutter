@@ -21,6 +21,7 @@ executable map-cutter
   build-depends:      base,
                       bytestring,
                       bytestring-lexing,
+                      containers,
                       directory,
                       filepath,
                       optparse-applicative
