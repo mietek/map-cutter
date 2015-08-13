@@ -23,7 +23,7 @@ executable map-cutter
                       aeson-pretty,
                       bytestring,
                       bytestring-lexing,
-                      containers,
                       directory,
                       filepath,
-                      optparse-applicative
+                      optparse-applicative,
+                      unordered-containers
