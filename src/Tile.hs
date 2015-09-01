@@ -8,30 +8,31 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import System.FilePath ((</>))
 
 import Geometry.Point
-import Geometry.Polyline
 import Geometry.Rect
+import RoadLink
+import RoadNode
 
 
 data Tile = T
-  { tPolylines :: [Polyline Double]
-  , tPoints    :: [Point Double]
+  { tRoadLinks :: [RoadLink]
+  , tRoadNodes :: [RoadNode]
   }
 
 instance ToJSON Tile where
-  toJSON (T ls ps) = J.object ["polylines" .= ls, "points" .= ps]
+  toJSON (T ls ns) = J.object ["roadLinks" .= ls, "roadNodes" .= ns]
 
 
 newTile :: Tile
 newTile =
     T [] []
 
-addPolyline :: Polyline Double -> Tile -> Tile
-addPolyline l (T ls ps) =
-    T (l : ls) ps
+addPolyline :: RoadLink -> Tile -> Tile
+addPolyline l (T ls ns) =
+    T (l : ls) ns
 
-addPoint :: Point Double -> Tile -> Tile
-addPoint p (T ls ps) =
-    T ls (p : ps)
+addPoint :: RoadNode -> Tile -> Tile
+addPoint n (T ls ns) =
+    T ls (n : ns)
 
 
 outputTile :: FilePath -> (Int, Int) -> Tile -> IO ()

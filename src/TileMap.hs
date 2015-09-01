@@ -3,8 +3,8 @@ module TileMap where
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as M
 
-import Geometry.Point
-import Geometry.Polyline
+import RoadLink
+import RoadNode
 import Tile
 
 
@@ -15,20 +15,20 @@ newTileMap :: TileMap
 newTileMap =
     M.empty
 
-insertPolylines :: TileMap -> [(Polyline Double, (Int, Int))] -> TileMap
-insertPolylines =
-    foldr (uncurry insertPolyline)
+insertRoadLinks :: TileMap -> [(RoadLink, (Int, Int))] -> TileMap
+insertRoadLinks =
+    foldr (uncurry insertRoadLink)
 
-insertPoints :: TileMap -> [(Point Double, (Int, Int))] -> TileMap
-insertPoints =
-    foldr (uncurry insertPoint)
+insertRoadNodes :: TileMap -> [(RoadNode, (Int, Int))] -> TileMap
+insertRoadNodes =
+    foldr (uncurry insertRoadNode)
 
-insertPolyline :: Polyline Double -> (Int, Int) -> TileMap -> TileMap
-insertPolyline =
+insertRoadLink :: RoadLink -> (Int, Int) -> TileMap -> TileMap
+insertRoadLink =
     updateTileMap . addPolyline
 
-insertPoint :: Point Double -> (Int, Int) -> TileMap -> TileMap
-insertPoint =
+insertRoadNode :: RoadNode -> (Int, Int) -> TileMap -> TileMap
+insertRoadNode =
     updateTileMap . addPoint
 
 updateTileMap :: (Tile -> Tile) -> (Int, Int) -> TileMap -> TileMap

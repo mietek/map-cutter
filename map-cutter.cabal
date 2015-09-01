@@ -26,4 +26,5 @@ executable map-cutter
                       directory,
                       filepath,
                       optparse-applicative,
+                      text,
                       unordered-containers
