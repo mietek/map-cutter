@@ -26,12 +26,12 @@ newTile :: Tile
 newTile =
     T [] []
 
-addPolyline :: RoadLink -> Tile -> Tile
-addPolyline l (T ls ns) =
+addRoadLink :: RoadLink -> Tile -> Tile
+addRoadLink l (T ls ns) =
     T (l : ls) ns
 
-addPoint :: RoadNode -> Tile -> Tile
-addPoint n (T ls ns) =
+addRoadNode :: RoadNode -> Tile -> Tile
+addRoadNode n (T ls ns) =
     T ls (n : ns)
 
 

@@ -5,8 +5,8 @@ import qualified Options.Applicative as O
 
 
 data Options = Options
-  { oPolylines :: FilePath
-  , oPoints    :: FilePath
+  { oRoadLinks :: FilePath
+  , oRoadNodes :: FilePath
   , oWidth     :: Int
   , oHeight    :: Int
   , oOutput    :: FilePath
@@ -19,31 +19,31 @@ getOptions =
     O.execParser $
       O.info (O.helper <*> parseOptions)
          ( O.header "map-cutter"
-        <> O.progDesc "Cut a map composed of polylines and points into tiles"
+        <> O.progDesc "Cut an OS map into tiles"
         <> O.fullDesc
          )
 
 parseOptions :: Parser Options
 parseOptions =
     Options <$>
-          parsePolylines
-      <*> parsePoints
+          parseRoadLinks
+      <*> parseRoadNodes
       <*> parseWidth
       <*> parseHeight
       <*> parseOutput
 
-parsePolylines :: Parser FilePath
-parsePolylines =
+parseRoadLinks :: Parser FilePath
+parseRoadLinks =
     O.argument O.str
-       ( O.metavar "POLYLINES"
-      <> O.help "File containing the polyline part of map input"
+       ( O.metavar "ROADLINKS"
+      <> O.help "File containing OS RoadLink input"
        )
 
-parsePoints :: Parser FilePath
-parsePoints =
+parseRoadNodes :: Parser FilePath
+parseRoadNodes =
     O.argument O.str
-       ( O.metavar "POINTS"
-      <> O.help "File containing the point part of map input"
+       ( O.metavar "ROADNODES"
+      <> O.help "File containing OS RoadNode input"
        )
 
 parseWidth :: Parser Int
@@ -70,5 +70,5 @@ parseOutput =
        ( O.metavar "OUTPUT"
       <> O.short 'o'
       <> O.value "dist/out"
-      <> O.help "Directory to contain tile output"
+      <> O.help "Output directory"
        )

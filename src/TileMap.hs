@@ -25,11 +25,11 @@ insertRoadNodes =
 
 insertRoadLink :: RoadLink -> (Int, Int) -> TileMap -> TileMap
 insertRoadLink =
-    updateTileMap . addPolyline
+    updateTileMap . addRoadLink
 
 insertRoadNode :: RoadNode -> (Int, Int) -> TileMap -> TileMap
 insertRoadNode =
-    updateTileMap . addPoint
+    updateTileMap . addRoadNode
 
 updateTileMap :: (Tile -> Tile) -> (Int, Int) -> TileMap -> TileMap
 updateTileMap fun tc tm =

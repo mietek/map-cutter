@@ -21,28 +21,28 @@ import TileMap
 main :: IO ()
 main = do
     opts <- getOptions
-    ls <- L.lines <$> L.readFile (oPolylines opts)
-    ps <- L.lines <$> L.readFile (oPoints opts)
+    ls <- L.lines <$> L.readFile (oRoadLinks opts)
+    ns <- L.lines <$> L.readFile (oRoadNodes opts)
     let out  = oOutput opts
         size = (oWidth opts, oHeight opts)
-        tm   = processPoints (processPolylines newTileMap size ls) size ps
+        tm   = processRoadNodes (processRoadLinks newTileMap size ls) size ns
     createDirectoryIfMissing True out
     outputTileMap out tm
 
 
-processPolylines :: TileMap -> (Int, Int) -> [L.ByteString] -> TileMap
-processPolylines tm size =
-    insertRoadLinks tm . concatMap (processPolyline size) . catMaybes . map readRoadLink
+processRoadLinks :: TileMap -> (Int, Int) -> [L.ByteString] -> TileMap
+processRoadLinks tm size =
+    insertRoadLinks tm . concatMap (processRoadLink size) . catMaybes . map readRoadLink
 
-processPoints :: TileMap -> (Int, Int) -> [L.ByteString] -> TileMap
-processPoints tm size =
-    insertRoadNodes tm . map (processPoint size) . catMaybes . map readRoadNode
+processRoadNodes :: TileMap -> (Int, Int) -> [L.ByteString] -> TileMap
+processRoadNodes tm size =
+    insertRoadNodes tm . map (processRoadNode size) . catMaybes . map readRoadNode
 
 
-processPolyline :: (Int, Int) -> RoadLink -> [(RoadLink, (Int, Int))]
-processPolyline _ (RL _ (PL []))  = []
-processPolyline _ (RL _ (PL [_])) = []
-processPolyline size (RL toid (PL (p : ps@(_ : _)))) =
+processRoadLink :: (Int, Int) -> RoadLink -> [(RoadLink, (Int, Int))]
+processRoadLink _ (RL _ (PL []))  = []
+processRoadLink _ (RL _ (PL [_])) = []
+processRoadLink size (RL toid (PL (p : ps@(_ : _)))) =
     let tc = tileCoords size p
         tb = tileBounds size tc
     in  loop tc tb p ps []
@@ -58,8 +58,8 @@ processPolyline size (RL toid (PL (p : ps@(_ : _)))) =
                                       else q2 : p1 : qs
                            in  ((RL toid (PL (reverse rs))), tc) : loop uc ub q2 ps1 []
 
-processPoint :: (Int, Int) -> RoadNode -> (RoadNode, (Int, Int))
-processPoint size (RN toid p) =
+processRoadNode :: (Int, Int) -> RoadNode -> (RoadNode, (Int, Int))
+processRoadNode size (RN toid p) =
     let tc = tileCoords size p
     in  ((RN toid p), tc)
 
