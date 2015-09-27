@@ -33,7 +33,9 @@ insertRoadNode =
 
 updateTileMap :: (Tile -> Tile) -> (Int, Int) -> TileMap -> TileMap
 updateTileMap fun tc tm =
-    M.insert tc (fun (M.lookupDefault newTile tc tm)) tm
+    M.insert tc (fun t) tm
+  where
+    t = M.lookupDefault newTile tc tm
 
 
 outputTileMap :: FilePath -> TileMap -> IO ()
