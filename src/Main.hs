@@ -3,6 +3,7 @@ module Main where
 import Control.Applicative ((<$>))
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.ByteString.Lex.Fractional (readDecimal)
+import qualified Data.HashMap.Strict as M
 import Data.Maybe (catMaybes)
 import Data.Text.Lazy.Encoding (decodeUtf8)
 import System.Directory (createDirectoryIfMissing)
@@ -16,6 +17,7 @@ import RoadLink
 import RoadNode
 import Tile
 import TileMap
+import TileGroupMap
 
 
 main :: IO ()
@@ -26,9 +28,14 @@ main = do
     let out  = oOutput opts
         size = (oWidth opts, oHeight opts)
         tm   = processRoadNodes (processRoadLinks newTileMap size ls) size ns
+        tgm  = processTiles newTileGroupMap tm
     createDirectoryIfMissing True out
-    outputTileMap out tm
+    outputTileGroupMap out tgm
 
+
+processTiles :: TileGroupMap -> TileMap -> TileGroupMap
+processTiles tgm =
+    insertTiles tgm . M.toList
 
 processRoadLinks :: TileMap -> (Int, Int) -> [L.ByteString] -> TileMap
 processRoadLinks tm size =
