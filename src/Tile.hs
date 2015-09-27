@@ -40,9 +40,13 @@ outputTile out tc =
     L.writeFile (out </> tileFileName tc) . J.encode
 
 
+tileName :: (Int, Int) -> String
+tileName (tx, ty) =
+    "tile-" ++ show tx ++ "-" ++ show ty
+
 tileFileName :: (Int, Int) -> FilePath
-tileFileName (tx, ty) =
-    "tile-" ++ show tx ++ "-" ++ show ty ++ ".json"
+tileFileName tc =
+    tileName tc ++ ".json"
 
 tileCoords :: (Int, Int) -> Point Double -> (Int, Int)
 tileCoords (width, height) (P x y) =
