@@ -4,7 +4,9 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import Data.ByteString.Lex.Fractional (readDecimal)
 import qualified Data.HashMap.Strict as M
 import Data.List (zipWith5)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromJust)
+import Data.Text.Lazy (Text)
+import qualified Data.Text.Lazy as T
 import Data.Text.Lazy.Encoding (decodeUtf8)
 import System.Directory (createDirectoryIfMissing)
 
@@ -108,15 +110,31 @@ readRoadLink :: L.ByteString -> Maybe RoadLink
 readRoadLink s =
     case L.split ' ' s of
       (toid : sl : rest) -> do
-          let (_ : _ : _ : sp) = reverse rest
-              ps = readPolyline (reverse sp)
+          let (_ : sn1 : sn2 : rsp) = reverse rest
+              n1 = decodeUtf8 sn1
+              n2 = decodeUtf8 sn2
+              ps = readPolyline (reverse rsp)
           l <- readDouble sl
           return $ RL
-            { rlTOID   = decodeUtf8 toid
-            , rlPoints = ps
-            , rlLength = l
+            { rlTOID    = decodeUtf8 toid
+            , rlPoints  = ps
+            , rlLength  = l
+            , rlNegNode = fromJust (selectNegNode n1 n2)
+            , rlPosNode = fromJust (selectPosNode n1 n2)
             }
       _ -> Nothing
+
+selectNegNode :: Text -> Text -> Maybe Text
+selectNegNode n1 n2
+  | T.head n1 == '-' && T.head n2 == '+' = Just (T.tail n1)
+  | T.head n1 == '+' && T.head n2 == '-' = Just (T.tail n2)
+  | otherwise                            = Nothing
+
+selectPosNode :: Text -> Text -> Maybe Text
+selectPosNode n1 n2
+  | T.head n1 == '-' && T.head n2 == '+' = Just (T.tail n2)
+  | T.head n1 == '+' && T.head n2 == '-' = Just (T.tail n1)
+  | otherwise                            = Nothing
 
 readPolyline :: [L.ByteString] -> Polyline Double
 readPolyline = PL . catMaybes . map readPoint

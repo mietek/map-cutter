@@ -10,9 +10,11 @@ import Geometry.Polyline
 
 
 data RoadLink = RL
-    { rlTOID   :: Text
-    , rlPoints :: Polyline Double
-    , rlLength :: Double
+    { rlTOID    :: Text
+    , rlPoints  :: Polyline Double
+    , rlLength  :: Double
+    , rlNegNode :: Text
+    , rlPosNode :: Text
     }
   deriving (Eq, Show, Ord)
 
