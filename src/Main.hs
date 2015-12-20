@@ -90,9 +90,9 @@ processRoadLink size (RL toid (PL (p : ps@(_ : _))) len) =
                            in  ((RL toid (PL (reverse rs)) len), tc) : loop uc ub q2 ps1 []
 
 processRoadNode :: (Int, Int) -> RoadNode -> (RoadNode, (Int, Int))
-processRoadNode size (RN toid p) =
-    let tc = tileCoords size p
-    in  ((RN toid p), tc)
+processRoadNode size rn =
+    let tc = tileCoords size (rnPoint rn)
+    in  (rn, tc)
 
 
 readRoadLink :: L.ByteString -> Maybe RoadLink
@@ -117,7 +117,10 @@ readRoadNode s =
     case L.split ' ' s of
       [toid, sp] -> do
         p <- readPoint sp
-        return (RN (decodeUtf8 toid) p)
+        return $ RN
+          { rnTOID  = decodeUtf8 toid
+          , rnPoint = p
+          }
       _ -> Nothing
 
 readPoint :: L.ByteString -> Maybe (Point Double)

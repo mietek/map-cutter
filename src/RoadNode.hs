@@ -9,8 +9,14 @@ import Data.Text.Lazy (Text)
 import Geometry.Point
 
 
-data RoadNode = RN Text (Point Double)
+data RoadNode = RN
+    { rnTOID  :: Text
+    , rnPoint :: Point Double
+    }
   deriving (Eq, Show, Ord)
 
 instance ToJSON RoadNode where
-  toJSON (RN toid p) = J.object ["toid" .= toid, "p" .= p]
+  toJSON rn = J.object
+    [ "toid" .= rnTOID rn
+    , "p"    .= rnPoint rn
+    ]
