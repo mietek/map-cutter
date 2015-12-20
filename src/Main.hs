@@ -34,8 +34,32 @@ main = do
 
 
 processTiles :: TileGroupMap -> TileMap -> TileGroupMap
-processTiles tgm =
-    insertTiles tgm . M.toList
+processTiles tgm tm =
+    insertTiles tgm (zip tcs ts'')
+  where
+    (tcs, ts) = unzip (M.toList tm)
+    ls    = map (map rlLength . tRoadLinks) ts
+    lmins = map minimum ls
+    lmaxs = map maximum ls
+    (lmeans, lstddevs) = unzip (map meanStdDev ls)
+    gs   = concat ls
+    gmin = minimum gs
+    gmax = maximum gs
+    (gmean, gstddev) = meanStdDev gs
+    ts'  = zipWith5 setLocalData lmins lmaxs lmeans lstddevs ts
+    ts'' = map (setGlobalData gmin gmax gmean gstddev) ts'
+
+mean :: [Double] -> Double
+mean xs = sum xs / fromIntegral (length xs)
+
+meanStdDev :: [Double] -> (Double, Double)
+meanStdDev xs =
+    let m   = mean xs
+        d x = let y = x - m in y * y
+        v   = mean (map d xs)
+        sd  = sqrt v
+    in  (m, sd)
+
 
 processRoadLinks :: TileMap -> (Int, Int) -> [L.ByteString] -> TileMap
 processRoadLinks tm size =
@@ -47,14 +71,14 @@ processRoadNodes tm size =
 
 
 processRoadLink :: (Int, Int) -> RoadLink -> [(RoadLink, (Int, Int))]
-processRoadLink _ (RL _ (PL []))  = []
-processRoadLink _ (RL _ (PL [_])) = []
-processRoadLink size (RL toid (PL (p : ps@(_ : _)))) =
+processRoadLink _ (RL _ (PL [])  _) = []
+processRoadLink _ (RL _ (PL [_]) _) = []
+processRoadLink size (RL toid (PL (p : ps@(_ : _))) len) =
     let tc = tileCoords size p
         tb = tileBounds size tc
     in  loop tc tb p ps []
   where
-    loop tc _ p1 [] qs = [((RL toid (PL (reverse (p1 : qs)))), tc)]
+    loop tc _ p1 [] qs = [((RL toid (PL (reverse (p1 : qs))) len), tc)]
     loop tc@(tx, ty) tb p1 ps1@(p2 : ps2) qs =
         case reverseFastClipYAxis tb (L p1 p2) of
           (q2, P 0 0)   -> loop tc tb q2 ps2 (p1 : qs)
@@ -63,7 +87,7 @@ processRoadLink size (RL toid (PL (p : ps@(_ : _)))) =
                                rs = if q2 == p1
                                       then q2 : qs
                                       else q2 : p1 : qs
-                           in  ((RL toid (PL (reverse rs))), tc) : loop uc ub q2 ps1 []
+                           in  ((RL toid (PL (reverse rs)) len), tc) : loop uc ub q2 ps1 []
 
 processRoadNode :: (Int, Int) -> RoadNode -> (RoadNode, (Int, Int))
 processRoadNode size (RN toid p) =
@@ -74,7 +98,13 @@ processRoadNode size (RN toid p) =
 readRoadLink :: L.ByteString -> Maybe RoadLink
 readRoadLink s =
     case L.split ' ' s of
-      (toid : ss) -> Just (RL (decodeUtf8 toid) (readPolyline ss))
+      (toid : ss) ->
+          let ps = readPolyline ss in
+          Just $ RL
+            { rlTOID   = decodeUtf8 toid
+            , rlPoints = ps
+            , rlLength = polylineLength ps
+            }
       _ -> Nothing
 
 readPolyline :: [L.ByteString] -> Polyline Double

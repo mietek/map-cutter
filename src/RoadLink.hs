@@ -9,8 +9,16 @@ import Data.Text.Lazy (Text)
 import Geometry.Polyline
 
 
-data RoadLink = RL Text (Polyline Double)
+data RoadLink = RL
+    { rlTOID   :: Text
+    , rlPoints :: Polyline Double
+    , rlLength :: Double
+    }
   deriving (Eq, Show, Ord)
 
 instance ToJSON RoadLink where
-  toJSON (RL toid ps) = J.object ["toid" .= toid, "ps" .= ps]
+  toJSON rl = J.object
+    [ "toid"   .= rlTOID rl
+    , "ps"     .= rlPoints rl
+    , "length" .= rlLength rl
+    ]

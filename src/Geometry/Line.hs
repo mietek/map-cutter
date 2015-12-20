@@ -34,3 +34,10 @@ reflectLineXMinusY (L p1 p2) =
 reflectLineXAxis :: (Num a) => Line a -> Line a
 reflectLineXAxis (L p1 p2) =
     L (reflectPointXAxis p1) (reflectPointXAxis p2)
+
+
+lineLength :: (Floating a) => Line a -> a
+lineLength (L (P p1x p1y) (P p2x p2y)) = sqrt (dx * dx + dy * dy)
+  where
+    dx = p2x - p1x
+    dy = p2y - p1y

@@ -14,25 +14,73 @@ import RoadNode
 
 
 data Tile = T
-  { tRoadLinks :: [RoadLink]
-  , tRoadNodes :: [RoadNode]
+  { tRoadLinks          :: [RoadLink]
+  , tRoadNodes          :: [RoadNode]
+  , tLocalMinLength     :: Double
+  , tLocalMaxLength     :: Double
+  , tLocalMeanLength    :: Double
+  , tLocalStdDevLength  :: Double
+  , tGlobalMinLength    :: Double
+  , tGlobalMaxLength    :: Double
+  , tGlobalMeanLength   :: Double
+  , tGlobalStdDevLength :: Double
   }
 
 instance ToJSON Tile where
-  toJSON (T ls ns) = J.object ["roadLinks" .= ls, "roadNodes" .= ns]
+  toJSON t =
+      J.object
+        [ "roadLinks"          .= tRoadLinks t
+        , "roadNodes"          .= tRoadNodes t
+        , "localMinLength"     .= tLocalMinLength t
+        , "localMaxLength"     .= tLocalMaxLength t
+        , "localMeanLength"    .= tLocalMeanLength t
+        , "localStdDevLength"  .= tLocalStdDevLength t
+        , "globalMinLength"    .= tGlobalMinLength t
+        , "globalMaxLength"    .= tGlobalMaxLength t
+        , "globalMeanLength"   .= tGlobalMeanLength t
+        , "globalStdDevLength" .= tGlobalStdDevLength t
+        ]
 
 
 newTile :: Tile
 newTile =
-    T [] []
+    T { tRoadLinks          = []
+      , tRoadNodes          = []
+      , tLocalMinLength     = 0
+      , tLocalMaxLength     = 0
+      , tLocalMeanLength    = 0
+      , tLocalStdDevLength  = 0
+      , tGlobalMinLength    = 0
+      , tGlobalMaxLength    = 0
+      , tGlobalMeanLength   = 0
+      , tGlobalStdDevLength = 0
+      }
 
 addRoadLink :: RoadLink -> Tile -> Tile
-addRoadLink l (T ls ns) =
-    T (l : ls) ns
+addRoadLink rl t =
+    t { tRoadLinks = rl : (tRoadLinks t)
+      }
 
 addRoadNode :: RoadNode -> Tile -> Tile
-addRoadNode n (T ls ns) =
-    T ls (n : ns)
+addRoadNode rn t =
+    t { tRoadNodes = rn : (tRoadNodes t)
+      }
+
+setLocalData :: Double -> Double -> Double -> Double -> Tile -> Tile
+setLocalData lmin lmax lmean lstddev t =
+    t { tLocalMinLength    = lmin
+      , tLocalMaxLength    = lmax
+      , tLocalMeanLength   = lmean
+      , tLocalStdDevLength = lstddev
+      }
+
+setGlobalData :: Double -> Double -> Double -> Double -> Tile -> Tile
+setGlobalData gmin gmax gmean gstddev t =
+    t { tGlobalMinLength    = gmin
+      , tGlobalMaxLength    = gmax
+      , tGlobalMeanLength   = gmean
+      , tGlobalStdDevLength = gstddev
+      }
 
 
 outputTile :: FilePath -> (Int, Int) -> Tile -> IO ()
