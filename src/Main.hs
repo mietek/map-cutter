@@ -70,24 +70,33 @@ processRoadNodes tm size =
     insertRoadNodes tm . map (processRoadNode size) . catMaybes . map readRoadNode
 
 
+replacePoints :: RoadLink -> Polyline Double -> RoadLink
+replacePoints rl ps =
+    rl { rlPoints = ps }
+
 processRoadLink :: (Int, Int) -> RoadLink -> [(RoadLink, (Int, Int))]
-processRoadLink _ (RL _ (PL [])  _) = []
-processRoadLink _ (RL _ (PL [_]) _) = []
-processRoadLink size (RL toid (PL (p : ps@(_ : _))) len) =
-    let tc = tileCoords size p
-        tb = tileBounds size tc
-    in  loop tc tb p ps []
+processRoadLink size rl =
+    case rlPoints rl of
+      PL []  -> []
+      PL [_] -> []
+      PL (p : ps@(_ : _)) ->
+        let tc = tileCoords size p
+            tb = tileBounds size tc
+        in  loop tc tb p ps []
   where
-    loop tc _ p1 [] qs = [((RL toid (PL (reverse (p1 : qs))) len), tc)]
+    loop tc _ p1 [] qs =
+        [(replacePoints rl (PL (reverse (p1 : qs))), tc)]
     loop tc@(tx, ty) tb p1 ps1@(p2 : ps2) qs =
         case reverseFastClipYAxis tb (L p1 p2) of
-          (q2, P 0 0)   -> loop tc tb q2 ps2 (p1 : qs)
-          (q2, P vx vy) -> let uc = (tx + vx, ty + vy)
-                               ub = tileBounds size uc
-                               rs = if q2 == p1
-                                      then q2 : qs
-                                      else q2 : p1 : qs
-                           in  ((RL toid (PL (reverse rs)) len), tc) : loop uc ub q2 ps1 []
+          (q2, P 0 0) ->
+            loop tc tb q2 ps2 (p1 : qs)
+          (q2, P vx vy) ->
+            let uc = (tx + vx, ty + vy)
+                ub = tileBounds size uc
+                rs = if q2 == p1
+                       then q2 : qs
+                       else q2 : p1 : qs
+            in  (replacePoints rl (PL (reverse rs)), tc) : loop uc ub q2 ps1 []
 
 processRoadNode :: (Int, Int) -> RoadNode -> (RoadNode, (Int, Int))
 processRoadNode size rn =
