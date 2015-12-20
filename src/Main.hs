@@ -98,12 +98,14 @@ processRoadNode size (RN toid p) =
 readRoadLink :: L.ByteString -> Maybe RoadLink
 readRoadLink s =
     case L.split ' ' s of
-      (toid : ss) ->
-          let ps = readPolyline ss in
-          Just $ RL
+      (toid : sl : rest) -> do
+          let (_ : _ : _ : sp) = reverse rest
+              ps = readPolyline (reverse sp)
+          l <- readDouble sl
+          return $ RL
             { rlTOID   = decodeUtf8 toid
             , rlPoints = ps
-            , rlLength = polylineLength ps
+            , rlLength = l
             }
       _ -> Nothing
 
