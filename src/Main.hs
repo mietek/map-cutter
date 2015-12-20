@@ -1,9 +1,9 @@
 module Main where
 
-import Control.Applicative ((<$>))
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.ByteString.Lex.Fractional (readDecimal)
 import qualified Data.HashMap.Strict as M
+import Data.List (zipWith5)
 import Data.Maybe (catMaybes)
 import Data.Text.Lazy.Encoding (decodeUtf8)
 import System.Directory (createDirectoryIfMissing)
